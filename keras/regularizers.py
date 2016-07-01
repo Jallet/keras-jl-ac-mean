@@ -1,5 +1,8 @@
 from __future__ import absolute_import
 from . import backend as K
+import numpy as np
+from theano import *
+import theano.tensor as T
 
 
 class Regularizer(object):
@@ -20,6 +23,7 @@ class WeightRegularizer(Regularizer):
     def __init__(self, l1=0., l2=0.):
         self.l1 = K.cast_to_floatx(l1)
         self.l2 = K.cast_to_floatx(l2)
+        self.ld = 2e-4
         self.uses_learning_phase = True
 
     def set_param(self, p):
@@ -35,8 +39,52 @@ class WeightRegularizer(Regularizer):
                             'ActivityRegularizer '
                             '(i.e. activity_regularizer="l2" instead '
                             'of activity_regularizer="activity_l2".')
+        # print "type of p: ", type(self.p)
+        # a = self.p.get_value()
+        # print "type of a: ", type(a)
+        # print "shape of a: ", a.shape
+        
         regularized_loss = loss + K.sum(K.abs(self.p)) * self.l1
         regularized_loss += K.sum(K.square(self.p)) * self.l2
+        # regularized_loss += K.sum(K.pow(self.p, 4)) * 1000
+        print "type of self.p: ", type(self.p)
+        if 4 == self.p.ndim:
+            p_array = self.p.get_value() 
+            print "ndim of self.p: ", self.p.ndim
+            print "shape of self.p: ", p_array.shape
+            shape = self.p.shape
+            size = self.p.size
+            row = shape[0]
+            col = size / row
+            print "type of row: ", row.type, ", type of col: ", col.type
+            reshaped_p = K.reshape(self.p, (row, col))
+            p_mean = K.mean(reshaped_p, axis = 1, keepdims = True)
+            centered_p = reshaped_p - p_mean
+            centered_p_t = K.transpose(centered_p)
+            covariance = K.dot(centered_p, centered_p_t)
+            print "type of covariance: ", type(covariance)
+            print "type of covariance: ", covariance.type
+            mask = T.eye(row)
+            regularized_loss += K.sum(K.abs(covariance - mask * covariance)) * self.ld
+        # mask = K.ones_like(covariance) - K.eye(row)
+        # diversity_loss = K.sum(covariance * mask)
+        # regularized_loss += diversity_loss
+
+
+        # print "type of regularized_loss: ", type(regularized_loss)
+        # a = K.sum(K.square(self.p)) * self.l2
+        # print "type of a: ", type(a)
+        # p_array = self.p.get_value() 
+        # if 4 == p_array.ndim:
+        #     p_reshape = p_array.reshape((p_array.shape[0], 
+        #         p_array.size / p_array.shape[0]))
+        #     covariance = np.asmatrix(p_reshape) * np.asmatrix(p_reshape.transpose())
+        #     diversity_loss = covariance.sum() - covariance.trace()
+        #     diversity_loss = diversity_loss[0, 0]
+        #     # print "shape of diversity_loss: ", diversity_loss.shape
+        #     diversity_loss = K.variable(diversity_loss)
+        #     print "type of diversity_loss: ", type(diversity_loss)
+        #     regularized_loss += diversity_loss
         return K.in_train_phase(regularized_loss, loss)
 
     def get_config(self):

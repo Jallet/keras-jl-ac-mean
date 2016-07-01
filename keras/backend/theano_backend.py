@@ -155,6 +155,9 @@ def batch_dot(x, y, axes=None):
 
 def transpose(x):
     return T.transpose(x)
+  
+def trace(x):
+    return T.trace(x)
 
 
 def gather(reference, indices):
