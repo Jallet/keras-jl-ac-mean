@@ -14,19 +14,22 @@ sys.path.insert(0, "/home/liangjiang/code/keras-jl/")
 from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Convolution2D, MaxPooling2D
+from keras.layers import Convolution2D, MaxPooling2D, AveragePooling2D
 from keras.utils import np_utils
+from keras.utils.visualize_util import plot
+from keras.callbacks import EarlyStopping
+from keras.regularizers import l2, activity_l1l2
 
-from keras.regularizers import l2
+from PIL import Image
 
 batch_size = 128
 nb_classes = 10
-nb_epoch = 12
+nb_epoch = 1000
 
 # input image dimensions
 img_rows, img_cols = 28, 28
 # number of convolutional filters to use
-nb_filters = 32
+nb_filters = 8
 # size of pooling area for max pooling
 nb_pool = 2
 # convolution kernel size
@@ -51,32 +54,88 @@ Y_test = np_utils.to_categorical(y_test, nb_classes)
 
 model = Sequential()
 
-model.add(Convolution2D(nb_filters, nb_conv, nb_conv,
-                        border_mode='valid',
+model.add(Convolution2D(8, nb_conv, nb_conv,
+                        border_mode='same',
                         input_shape=(1, img_rows, img_cols),
+                        # W_regularizer = l1l2ld(l1 = 0., l2 = 0., ld = 0.), 
                         W_regularizer = l2(l = 0.), 
-                        b_regularizer = l2(l = 0.)))
-model.add(Activation('relu'))
-model.add(Convolution2D(nb_filters, nb_conv, nb_conv,
-                        W_regularizer = l2(l = 0.), 
-                        b_regularizer = l2(l = 0.)))
+                        b_regularizer = l2(l = 0.), 
+                        activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.)))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
-model.add(Dropout(0.25))
+# model.add(AveragePooling2D(pool_size=(nb_pool, nb_pool)))
+model.add(Convolution2D(16, nb_conv, nb_conv,
+                        border_mode='same',
+                        input_shape=(1, img_rows, img_cols),
+                        # W_regularizer = l1l2ld(l1 = 0., l2 = 0., ld = 0.), 
+                        W_regularizer = l2(l = 0.), 
+                        b_regularizer = l2(l = 0.)))
+model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+model.add(Convolution2D(32, nb_conv, nb_conv,
+                        border_mode='valid',
+                        input_shape=(1, img_rows, img_cols),
+                        # W_regularizer = l1l2ld(l1 = 0., l2 = 0., ld = 0.), 
+                        W_regularizer = l2(l = 0.), 
+                        b_regularizer = l2(l = 0.)))
+# model.add(AveragePooling2D(pool_size=(5, 5)))
+# model.add(Dropout(0.25))
 
 model.add(Flatten())
-model.add(Dense(128))
-model.add(Activation('relu'))
-model.add(Dropout(0.5))
-model.add(Dense(nb_classes))
+# model.add(Dense(128))
+# model.add(Activation('relu'))
+# model.add(Dropout(0.5))
+model.add(Dense(nb_classes, W_regularizer = l2(l = 0.), b_regularizer = l2(l = 0.)))
 model.add(Activation('softmax'))
+
+plot(model, to_file = "./mnist.png", show_shapes = True)
+# sys.exit()
+
+for i in range(len(model.layers)):
+    print("i: ", i) 
+    print(model.layers[i].get_config())
+
+# sys.exit()
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adadelta',
               metrics=['accuracy'])
 
 model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+        callbacks = [EarlyStopping(monitor = 'val_loss', patience = 5)],
           verbose=1, validation_data=(X_test, Y_test))
 score = model.evaluate(X_test, Y_test, verbose=0)
 print('Test score:', score[0])
 print('Test accuracy:', score[1])
+weights = model.layers[0].get_weights()
+print(weights)
+weights = weights[0]
+print ("shape of weights: ", weights.shape)
+reshaped_weights = weights.reshape((weights.shape[0]), weights.size / weights.shape[0])
+reshaped_weights = np.asmatrix(reshaped_weights)
+print ("shape of weights: ", reshaped_weights.shape)
+# print("shape of reshaped_weights: ", reshaped_weights.shape)
+# print ("weights of conv layer:", weights)
+# print ("reshaped_weights of conv layer: \n", reshaped_weights)
+centered_weights = (reshaped_weights - np.mean(reshaped_weights, axis = 1, keepdims = True)) / np.std(reshaped_weights, axis = 1, keepdims = True)
+# print("centered_weights:")
+# print(centered_weights)
+covariance = centered_weights * centered_weights.transpose() / (centered_weights.shape[1])
+# print("covariance")
+# print(covariance)
+np.savetxt("covariance", covariance, fmt = "%f")
+weights = model.layers[7].get_weights()
+weights = weights[0]
+weights = weights.transpose()
+print("shape of weights: ", weights.shape)
+reshaped_weights = weights.reshape((weights.shape[0]), weights.size / weights.shape[0])
+reshaped_weights = np.asmatrix(reshaped_weights)
+# print("shape of reshaped_weights: ", reshaped_weights.shape)
+# print ("weights of conv layer:", weights)
+# print ("reshaped_weights of conv layer: \n", reshaped_weights)
+centered_weights = (reshaped_weights - np.mean(reshaped_weights, axis = 1, keepdims = True)) / np.std(reshaped_weights, axis = 1, keepdims = True)
+# print("centered_weights:")
+# print(centered_weights)
+covariance = centered_weights * centered_weights.transpose() / (weights.shape[1])
+# print("covariance")
+# print(covariance)
+np.savetxt("dense_covariance", covariance, fmt = "%f")

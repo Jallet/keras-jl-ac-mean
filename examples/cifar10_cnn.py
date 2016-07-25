@@ -10,8 +10,9 @@ Note: the data was pickled with Python 2, and some encoding issues might prevent
 from loading it in Python 3. You might have to load it in Python 2,
 save it in a different format, load it in Python 3 and repickle it.
 '''
-
 from __future__ import print_function
+import sys
+sys.path.insert(0, "/home/liangjiang/code/keras-jl/")
 from keras.datasets import cifar10
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -19,11 +20,15 @@ from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD
 from keras.utils import np_utils
+from keras.callbacks import EarlyStopping
+from keras.regularizers import l2
+
+import numpy as np
 
 batch_size = 32
 nb_classes = 10
 nb_epoch = 200
-data_augmentation = True
+data_augmentation = False
 
 # input image dimensions
 img_rows, img_cols = 32, 32
@@ -43,16 +48,24 @@ Y_test = np_utils.to_categorical(y_test, nb_classes)
 model = Sequential()
 
 model.add(Convolution2D(32, 3, 3, border_mode='same',
-                        input_shape=(img_channels, img_rows, img_cols)))
+                        input_shape=(img_channels, img_rows, img_cols),
+                        W_regularizer = l2(l = 0.), 
+                        b_regularizer = l2(l = 0.)))
 model.add(Activation('relu'))
-model.add(Convolution2D(32, 3, 3))
+model.add(Convolution2D(32, 3, 3,
+                        W_regularizer = l2(l = 0.), 
+                        b_regularizer = l2(l = 0.)))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Convolution2D(64, 3, 3, border_mode='same'))
+model.add(Convolution2D(64, 3, 3, border_mode='same',
+                        W_regularizer = l2(l = 0.), 
+                        b_regularizer = l2(l = 0.)))
 model.add(Activation('relu'))
-model.add(Convolution2D(64, 3, 3))
+model.add(Convolution2D(64, 3, 3,
+                        W_regularizer = l2(l = 0.), 
+                        b_regularizer = l2(l = 0.)))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
@@ -81,6 +94,7 @@ if not data_augmentation:
               batch_size=batch_size,
               nb_epoch=nb_epoch,
               validation_data=(X_test, Y_test),
+              # callbacks = [EarlyStopping(monitor = 'val_loss', patience = 10)],
               shuffle=True)
 else:
     print('Using real-time data augmentation.')
@@ -107,4 +121,12 @@ else:
                         batch_size=batch_size),
                         samples_per_epoch=X_train.shape[0],
                         nb_epoch=nb_epoch,
+                        # callbacks = [EarlyStopping(monitor = 'val_loss', patience = 10)],
                         validation_data=(X_test, Y_test))
+weights = model.layers[0].get_weights()
+weights = weights[0]
+weights = weights.reshape(weights.shape[0], weights.size / weights.shape[0])
+weights = np.asmatrix(weights)
+centered_weights = weights - np.mean(weights, axis = 1, keepdims = True)
+covariance = centered_weights * centered_weights.transpose()
+np.savetxt("cifar_covariance", covariance, fmt = "%f")
