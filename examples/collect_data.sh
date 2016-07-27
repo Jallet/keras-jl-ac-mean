@@ -6,6 +6,7 @@ then
 fi
 
 file=$1
+rm nohup.out
 mkdir $file
 mv acc $file/
 mv val_acc $file/
