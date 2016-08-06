@@ -23,7 +23,7 @@ class WeightRegularizer(Regularizer):
     def __init__(self, l1=0., l2=0.):
         self.l1 = K.cast_to_floatx(l1)
         self.l2 = K.cast_to_floatx(l2)
-        self.l2 = K.cast_to_floatx(0.)
+        self.l2 = K.cast_to_floatx(0.0005)
         self.uses_learning_phase = True
 
     def set_param(self, p):
@@ -53,7 +53,7 @@ class ActivityRegularizer(Regularizer):
     def __init__(self, l1=0., l2=0.):
         self.l1 = K.cast_to_floatx(l1)
         self.l2 = K.cast_to_floatx(l2)
-        self.ld = K.cast_to_floatx(0.5)
+        self.ld = K.cast_to_floatx(0.000001)
         self.uses_learning_phase = True
 
     def set_layer(self, layer):
@@ -81,8 +81,8 @@ class ActivityRegularizer(Regularizer):
             print "col: ", col
             mean = K.mean(output, axis = 0, keepdims = True)
             std = K.std(output, axis = 0, keepdims = True)
-            normalized_output = (output - mean) 
-            covariance = T.dot(T.transpose(normalized_output), normalized_output) / col
+            normalized_output = (output - mean) / std
+            covariance = T.dot(T.transpose(normalized_output), normalized_output) / 32
             mask = T.eye(col)
             regularized_loss += K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1)
             
