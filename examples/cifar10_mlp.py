@@ -65,11 +65,20 @@ Y_test = np_utils.to_categorical(y_test, nb_classes)
 # model.add(Activation('softmax'))
 
 model = Sequential()
-model.add(Dense(1024, input_shape=(3072,), activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.), 
+model.add(Dense(512, input_shape=(3072,), activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.), 
     W_regularizer = l2(l = 0.), b_regularizer = l2(l = 0.)))
 model.add(Activation('relu'))
 # model.add(Dropout(0.2))
-model.add(Dense(512, activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.),
+model.add(Dense(1024, activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.),
+    W_regularizer = l2(l = 0.), b_regularizer = l2(l = 0.)))
+model.add(Activation('relu'))
+model.add(Dense(1024, activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.),
+    W_regularizer = l2(l = 0.), b_regularizer = l2(l = 0.)))
+model.add(Activation('relu'))
+model.add(Dense(2048, activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.),
+    W_regularizer = l2(l = 0.), b_regularizer = l2(l = 0.)))
+model.add(Activation('relu'))
+model.add(Dense(2048, activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.),
     W_regularizer = l2(l = 0.), b_regularizer = l2(l = 0.)))
 model.add(Activation('relu'))
 model.add(Dropout(0.2))
