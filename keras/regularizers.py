@@ -53,7 +53,7 @@ class ActivityRegularizer(Regularizer):
     def __init__(self, l1=0., l2=0.):
         self.l1 = K.cast_to_floatx(l1)
         self.l2 = K.cast_to_floatx(l2)
-        self.ld = K.cast_to_floatx(0.1)
+        self.ld = K.cast_to_floatx(0.01)
         self.uses_learning_phase = True
         self.batch_size = 32
 
@@ -83,8 +83,10 @@ class ActivityRegularizer(Regularizer):
             print "col: ", col
             if output.ndim == 4:
                 print "conv layer"
-                output = T.mean(output, axis = -1)
-                output = T.mean(output, axis = -1)
+                # output = T.mean(output, axis = -1)
+                # output = T.mean(output, axis = -1)
+                output = K.max(output, axis = -1)
+                output = K.max(output, axis = -1)
                 # output = K.batch_flatten(output)
                 # output = K.transpose(output)
                 # output = K.reshape(output, (col, self.batch_size * self.layer.output[2] * self.layer.output[3]))
