@@ -12,7 +12,7 @@ save it in a different format, load it in Python 3 and repickle it.
 '''
 from __future__ import print_function
 import sys
-sys.path.insert(0, "/home/liangjiang/code/keras-jl-ac/")
+sys.path.insert(0, "/home/liangjiang/code/keras-jl-ac-mean/")
 from keras.datasets import cifar10
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -25,7 +25,7 @@ from keras.regularizers import l2, activity_l1l2
 
 import numpy as np
 
-batch_size = 32
+batch_size = 40
 nb_classes = 10
 nb_epoch = 200
 data_augmentation = False

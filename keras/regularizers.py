@@ -55,7 +55,7 @@ class ActivityRegularizer(Regularizer):
         self.l2 = K.cast_to_floatx(l2)
         self.ld = K.cast_to_floatx(0.01)
         self.uses_learning_phase = True
-        self.batch_size = 32
+        self.batch_size = 40
 
     def set_layer(self, layer):
         self.layer = layer
@@ -82,25 +82,35 @@ class ActivityRegularizer(Regularizer):
             print "row: ", row
             print "col: ", col
             if output.ndim == 4:
+                map_size = self.layer.output_shape[2] * self.layer.output_shape[3]
+                print "shape[0] of output: ", output.shape[0]
                 print "conv layer"
-                # output = T.mean(output, axis = -1)
-                # output = T.mean(output, axis = -1)
-                output = K.max(output, axis = -1)
-                output = K.max(output, axis = -1)
-                # output = K.batch_flatten(output)
-                # output = K.transpose(output)
-                # output = K.reshape(output, (col, self.batch_size * self.layer.output[2] * self.layer.output[3]))
-                # output = K.transpose(output)
+                # temp = T.mean(output, axis = -1)
+                # mean_output = T.mean(temp, axis = -1)
+                # temp = K.max(output, axis = -1)
+                # mean_output = K.max(temp, axis = -1)
+                flatten_output = K.batch_flatten(output)
+                trans_output = K.transpose(flatten_output)
+                reshape_output = K.reshape(trans_output, (col, self.batch_size * map_size))
+                matrix_output = K.transpose(reshape_output)
                 
-            print "ndim: ", output.ndim
-            print "shape : ", output.shape
-            
-            mean = K.mean(output, axis = 0, keepdims = True)
-            std = K.std(output, axis = 0, keepdims = True)
-            normalized_output = (output - mean) / std
-            covariance = T.dot(T.transpose(normalized_output), normalized_output) / self.batch_size
-            mask = T.eye(col)
-            regularized_loss += K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1)
+                # print "ndim: ", mean_output.ndim
+                # print "shape : ", mean_output.shape
+                
+                mean = K.mean(matrix_output, axis = 0, keepdims = True)
+                # mean_p = T.printing.Print('mean')(mean)
+                std = K.std(matrix_output, axis = 0, keepdims = True)
+                normalized_output = (matrix_output - mean) / std
+                covariance = T.dot(T.transpose(normalized_output), normalized_output) / self.batch_size / map_size
+                mask = T.eye(col)
+                regularized_loss += K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1)
+            else:
+                mean = K.mean(output, axis = 0, keepdims = True)
+                std = K.std(output, axis = 0, keepdims = True)
+                normalized_output = (output - mean) / std
+                covariance = T.dot(T.transpose(normalized_output), normalized_output) / self.batch_size
+                mask = T.eye(col)
+                regularized_loss += K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1)
             
         return K.in_train_phase(regularized_loss, loss)
 
