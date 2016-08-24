@@ -111,6 +111,7 @@ if not data_augmentation:
               nb_epoch=nb_epoch,
               validation_data=(X_test, Y_test),
               callbacks = [LearningRateScheduler(lr_schedule)],
+              verbose = 2, 
               shuffle=True)
 else:
     print('Using real-time data augmentation.')

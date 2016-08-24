@@ -53,7 +53,7 @@ class ActivityRegularizer(Regularizer):
     def __init__(self, l1=0., l2=0.):
         self.l1 = K.cast_to_floatx(l1)
         self.l2 = K.cast_to_floatx(l2)
-        self.ld = K.cast_to_floatx(0.5)
+        self.ld = K.cast_to_floatx(0.05)
         self.uses_learning_phase = True
         self.batch_size = 40
 
@@ -103,14 +103,18 @@ class ActivityRegularizer(Regularizer):
                 normalized_output = (matrix_output - mean) / std
                 covariance = T.dot(T.transpose(normalized_output), normalized_output) / self.batch_size / map_size
                 mask = T.eye(col)
-                regularized_loss += K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1) / col
+                diversity_loss = K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1)
+                diversity_loss = T.printing.Print("diversity_loss")(diversity_loss)
+                regularized_loss += diversity_loss
             else:
                 mean = K.mean(output, axis = 0, keepdims = True)
                 std = K.std(output, axis = 0, keepdims = True)
                 normalized_output = (output - mean) / std
                 covariance = T.dot(T.transpose(normalized_output), normalized_output) / self.batch_size
                 mask = T.eye(col)
-                regularized_loss += K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1) / col
+                diversity_loss = K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1)
+                diversity_loss = T.printing.Print("diversity_loss")(diversity_loss)
+                regularized_loss += diversity_loss
            
         return K.in_train_phase(regularized_loss, loss)
 
