@@ -25,7 +25,7 @@ from keras.regularizers import l2, activity_l1l2
 
 import numpy as np
 
-batch_size = 40
+batch_size = 32
 nb_classes = 10
 nb_epoch = 200
 data_augmentation = False
@@ -111,7 +111,7 @@ if not data_augmentation:
               nb_epoch=nb_epoch,
               validation_data=(X_test, Y_test),
               callbacks = [LearningRateScheduler(lr_schedule)],
-              verbose = 2, 
+              # verbose = 2, 
               shuffle=True)
 else:
     print('Using real-time data augmentation.')
