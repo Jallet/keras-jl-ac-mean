@@ -23,7 +23,7 @@ class WeightRegularizer(Regularizer):
     def __init__(self, l1=0., l2=0.):
         self.l1 = K.cast_to_floatx(l1)
         self.l2 = K.cast_to_floatx(l2)
-        self.l2 = K.cast_to_floatx(0.002)
+        self.l2 = K.cast_to_floatx(0.001)
         self.uses_learning_phase = True
 
     def set_param(self, p):
@@ -89,12 +89,12 @@ class ActivityRegularizer(Regularizer):
                 print "conv layer"
                 # temp = T.mean(output, axis = -1)
                 # mean_output = T.mean(temp, axis = -1)
-                # temp = K.max(output, axis = -1)
-                # mean_output = K.max(temp, axis = -1)
-                flatten_output = K.batch_flatten(output)
-                trans_output = K.transpose(flatten_output)
-                reshape_output = K.reshape(trans_output, (col, num_samples * map_size))
-                matrix_output = K.transpose(reshape_output)
+                temp = K.max(output, axis = -1)
+                matrix_output = K.max(temp, axis = -1)
+                # flatten_output = K.batch_flatten(output)
+                # trans_output = K.transpose(flatten_output)
+                # reshape_output = K.reshape(trans_output, (col, num_samples * map_size))
+                # matrix_output = K.transpose(reshape_output)
                 
                 # print "ndim: ", mean_output.ndim
                 # print "shape : ", mean_output.shape
@@ -103,7 +103,7 @@ class ActivityRegularizer(Regularizer):
                 # mean_p = T.printing.Print('mean')(mean)
                 std = K.std(matrix_output, axis = 0, keepdims = True)
                 normalized_output = (matrix_output - mean) / std
-                covariance = T.dot(T.transpose(normalized_output), normalized_output) / num_samples / map_size
+                covariance = T.dot(T.transpose(normalized_output), normalized_output) / num_samples 
                 mask = T.eye(col)
                 diversity_loss = K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1)
                 # diversity_loss = T.printing.Print("diversity_loss")(diversity_loss)
