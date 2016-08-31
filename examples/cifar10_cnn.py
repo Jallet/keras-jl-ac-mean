@@ -79,7 +79,7 @@ model.add(Dense(512, activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.),
                         W_regularizer = l2(l = 0.), 
                         b_regularizer = l2(l = 0.)))
 model.add(Activation('relu'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.2))
 model.add(Dense(nb_classes, 
                         W_regularizer = l2(l = 0.), 
                         b_regularizer = l2(l = 0.)))
@@ -169,3 +169,4 @@ np.savetxt("loss", loss, fmt = "%f")
 np.savetxt("val_loss", val_loss, fmt = "%f")
 np.savetxt("acc", acc, fmt = "%f")
 np.savetxt("val_acc", val_acc, fmt = "%f")
+model.save_weights("./weight/weight")
