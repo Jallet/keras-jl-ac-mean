@@ -75,12 +75,12 @@ model.add(MaxPooling2D(pool_size=(2, 2)))
 # model.add(Dropout(0.25))
 
 model.add(Flatten())
-model.add(Dense(512, # activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.), 
+model.add(Dense(512, activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.), 
                         W_regularizer = l2(l = 0.), 
                         b_regularizer = l2(l = 0.)))
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
-model.add(Dense(nb_classes, 
+model.add(Dense(nb_classes, activity_regularizer = activity_l1l2(l1 = 0., l2 = 0.), 
                         W_regularizer = l2(l = 0.), 
                         b_regularizer = l2(l = 0.)))
 model.add(Activation('softmax'))
