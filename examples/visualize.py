@@ -174,20 +174,22 @@ def main():
         print("col: ", col)
         map_size = activation.shape[2] * activation.shape[3]
         print("map_size: ", map_size)
-        flatten_activation = np.reshape(activation, (num, col * map_size))
-        print("shape of flatten_activation: ", flatten_activation.shape)
-        trans_activation = flatten_activation.transpose()
-        print("shape of trans_activation: ", trans_activation.shape)
-        reshape_activation = np.reshape(trans_activation, (col, num * map_size))
-        print("shape of reshape_activation: ", reshape_activation.shape)
-        matrix_activation = reshape_activation.transpose()
-        print("shape of matrix_activation: ", matrix_activation.shape)
+        temp = np.mean(activation, axis = -1)
+        matrix_activation = np.mean(temp, axis = -1)
+        # flatten_activation = np.reshape(activation, (num, col * map_size))
+        # print("shape of flatten_activation: ", flatten_activation.shape)
+        # trans_activation = flatten_activation.transpose()
+        # print("shape of trans_activation: ", trans_activation.shape)
+        # reshape_activation = np.reshape(trans_activation, (col, num * map_size))
+        # print("shape of reshape_activation: ", reshape_activation.shape)
+        # matrix_activation = reshape_activation.transpose()
+        # print("shape of matrix_activation: ", matrix_activation.shape)
 
         mean = np.mean(matrix_activation, axis = 0, keepdims = True)
         # mean_p = T.printing.Print('mean')(mean)
         std = np.std(matrix_activation, axis = 0, keepdims = True)
         normalized_output = (matrix_activation - mean) / std
-        covariance = np.dot(np.transpose(normalized_output), normalized_output) / num / map_size
+        covariance = np.dot(np.transpose(normalized_output), normalized_output) / num 
     else:
         num = activation.shape[0]
         mean = np.mean(activation, axis = 0, keepdims = True)
