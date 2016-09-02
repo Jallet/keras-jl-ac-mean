@@ -65,7 +65,7 @@ def main():
     
     print("Making model")
 
-    model.add(Convolution2D(32, 3, 3, border_mode='same',
+    model.add(Convolution2D(32, 3, 3, border_mode='same', 
                             input_shape=(img_channels, img_rows, img_cols),
                             W_regularizer = l2(l = 0.), 
                             b_regularizer = l2(l = 0.)))
@@ -130,7 +130,7 @@ def main():
     X_test /= 255
     print(X_test.shape[0], 'test samples')
     crop_x = X_test
-    # crop_x = random_crop(X_test, size = (3, 3), times = 10)
+    # crop_x = random_crop(X_test, size = (9, 9), times = 10)
     print("shape of crop_x: ", crop_x.shape)
     im = crop_x[0, :, :, :] 
     # print("crop_x[0]", im)
@@ -147,25 +147,25 @@ def main():
 
     activation = func([0] + [crop_x])
     print("shape of activation: ", activation.shape)
-    max_sample_index = np.argmax(activation, axis = 0)
-    max_sample_index = max_sample_index.squeeze()
-    np.savetxt("max_sample_index", max_sample_index, fmt = "%d")
-    print("shape of max_sample_index: ", max_sample_index.shape)
-    # print("max_29", activation[:, 29, :, :])
-    for i in range(32):
-        ax = fig.add_subplot(8, 4, i + 1, frameon=False)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.xaxis.set_ticks_position('none')
-        ax.yaxis.set_ticks_position('none')
-        im = crop_x[max_sample_index[i], :, :, :]
-        im = np.swapaxes(im, 0, 2)
-        im = np.swapaxes(im, 1, 0)
-        # print("shape of im: ", im.shape)
-        im = im * 255
-        im = im.astype(np.uint8)
-        ax.imshow(im)
-    plt.show()
+    # max_sample_index = np.argmax(activation, axis = 0)
+    # max_sample_index = max_sample_index.squeeze()
+    # np.savetxt("max_sample_index", max_sample_index, fmt = "%d")
+    # print("shape of max_sample_index: ", max_sample_index.shape)
+    # # print("max_29", activation[:, 29, :, :])
+    # for i in range(32):
+    #     ax = fig.add_subplot(8, 4, i + 1, frameon=False)
+    #     ax.set_xticks([])
+    #     ax.set_yticks([])
+    #     ax.xaxis.set_ticks_position('none')
+    #     ax.yaxis.set_ticks_position('none')
+    #     im = crop_x[max_sample_index[i], :, :, :]
+    #     im = np.swapaxes(im, 0, 2)
+    #     im = np.swapaxes(im, 1, 0)
+    #     # print("shape of im: ", im.shape)
+    #     im = im * 255
+    #     im = im.astype(np.uint8)
+    #     ax.imshow(im)
+    # plt.show()
         
     if activation.ndim == 4:
         num = activation.shape[0]
@@ -174,22 +174,22 @@ def main():
         print("col: ", col)
         map_size = activation.shape[2] * activation.shape[3]
         print("map_size: ", map_size)
-        temp = np.mean(activation, axis = -1)
-        matrix_activation = np.mean(temp, axis = -1)
-        # flatten_activation = np.reshape(activation, (num, col * map_size))
-        # print("shape of flatten_activation: ", flatten_activation.shape)
-        # trans_activation = flatten_activation.transpose()
-        # print("shape of trans_activation: ", trans_activation.shape)
-        # reshape_activation = np.reshape(trans_activation, (col, num * map_size))
-        # print("shape of reshape_activation: ", reshape_activation.shape)
-        # matrix_activation = reshape_activation.transpose()
-        # print("shape of matrix_activation: ", matrix_activation.shape)
+        # temp = np.mean(activation, axis = -1)
+        # matrix_activation = np.mean(temp, axis = -1)
+        flatten_activation = np.reshape(activation, (num, col * map_size))
+        print("shape of flatten_activation: ", flatten_activation.shape)
+        trans_activation = flatten_activation.transpose()
+        print("shape of trans_activation: ", trans_activation.shape)
+        reshape_activation = np.reshape(trans_activation, (col, num * map_size))
+        print("shape of reshape_activation: ", reshape_activation.shape)
+        matrix_activation = reshape_activation.transpose()
+        print("shape of matrix_activation: ", matrix_activation.shape)
 
         mean = np.mean(matrix_activation, axis = 0, keepdims = True)
         # mean_p = T.printing.Print('mean')(mean)
         std = np.std(matrix_activation, axis = 0, keepdims = True)
         normalized_output = (matrix_activation - mean) / std
-        covariance = np.dot(np.transpose(normalized_output), normalized_output) / num 
+        covariance = np.dot(np.transpose(normalized_output), normalized_output) / num  / map_size
     else:
         num = activation.shape[0]
         mean = np.mean(activation, axis = 0, keepdims = True)
