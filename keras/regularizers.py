@@ -50,12 +50,13 @@ class WeightRegularizer(Regularizer):
 
 
 class ActivityRegularizer(Regularizer):
-    def __init__(self, l1=0., l2=0.):
+    def __init__(self, l1=0., l2=0., ld = 0.):
         self.l1 = K.cast_to_floatx(l1)
         self.l2 = K.cast_to_floatx(l2)
-        self.ld = K.cast_to_floatx(0.01)
+        # self.ld = K.cast_to_floatx(0.01)
+        self.ld = K.cast_to_floatx(ld)
+        print("self.ld: ", self.ld)
         self.uses_learning_phase = True
-        self.batch_size = 40
 
     def set_layer(self, layer):
         self.layer = layer
@@ -83,7 +84,7 @@ class ActivityRegularizer(Regularizer):
             #     col = col * self.layer.output_shape[i]
             print "row: ", row
             print "col: ", col
-            if output.ndim == 4:
+            if output.ndim == 4: # convolution layer
                 map_size = self.layer.output_shape[2] * self.layer.output_shape[3]
                 print "shape[0] of output: ", output.shape[0]
                 print "conv layer"
@@ -108,7 +109,7 @@ class ActivityRegularizer(Regularizer):
                 diversity_loss = K.sum(K.square(covariance - mask * covariance)) * self.ld / (col - 1)
                 # diversity_loss = T.printing.Print("diversity_loss")(diversity_loss)
                 regularized_loss += diversity_loss
-            else:
+            else: # fully connected layer
                 mean = K.mean(output, axis = 0, keepdims = True)
                 std = K.std(output, axis = 0, keepdims = True)
                 normalized_output = (output - mean) / std
@@ -152,6 +153,9 @@ def activity_l2(l=0.01):
 
 def activity_l1l2(l1=0.01, l2=0.01):
     return ActivityRegularizer(l1=l1, l2=l2)
+
+def activity_l1l2ld(l1 = 0.01, l2 = 0.01, ld = 0.01):
+    return ActivityRegularizer(l1=l1, l2=l2, ld = ld)
 
 
 from .utils.generic_utils import get_from_module
