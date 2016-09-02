@@ -23,7 +23,8 @@ class WeightRegularizer(Regularizer):
     def __init__(self, l1=0., l2=0.):
         self.l1 = K.cast_to_floatx(l1)
         self.l2 = K.cast_to_floatx(l2)
-        self.l2 = K.cast_to_floatx(0.0001)
+        # self.l2 = K.cast_to_floatx(0.0001)
+        print("self.l2: ", self.l2)
         self.uses_learning_phase = True
 
     def set_param(self, p):
@@ -55,7 +56,7 @@ class ActivityRegularizer(Regularizer):
         self.l2 = K.cast_to_floatx(l2)
         # self.ld = K.cast_to_floatx(0.01)
         self.ld = K.cast_to_floatx(ld)
-        print("self.ld: ", self.ld)
+        # print("self.ld: ", self.ld)
         self.uses_learning_phase = True
 
     def set_layer(self, layer):
